@@ -1,0 +1,77 @@
+# Maven
+alias mi="mvn install"
+alias mci="mvn clean install"
+alias mp="mvn package -Pbundle"
+alias mcp="mvn clean package -Pbundle"
+alias mt="mvn test -DfailIfNoTests=false"
+alias mit="mvn verify -Pintegration-test"
+alias mc="mvn clean && find . -mindepth 1 -maxdepth 2 -type d -name state -print0 | xargs -0 -I {} rm -rf {} +"
+alias cl="clear"
+alias lg="tail -f nohup.out"
+alias dev-runner='cd "$HOME/Projects/eng_plt/dev-runner/"'
+alias cdpro='cd "$HOME/Projects/eng_cc/"'
+alias g.s="git status"
+alias g.b="git branch"
+alias g.c="git commit"
+alias g.r="git restore"
+alias g.d="git diff"
+alias ..="cd .."
+alias g.c="git checkout"
+alias g.l="git log"
+alias g.a="git add"
+alias v="vim"
+# common stuff
+alias h='head -n '
+alias t='tail -n '
+alias c=cat
+alias g=grep
+alias l='lsd -hal --group-dirs first'
+alias ls.se='ls --sort extension'
+alias du.sort='du -hs * | sort -hr'
+alias devlistpath='$HOME/Projects/eng_plt/dev-runner/work/run'
+alias dev.l='cd "$HOME/Projects/eng_plt/dev-runner/work/run/" && ls'
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+#switch to any directory and go to that directory on enter clicj
+sd() {
+    TARGET="$({ fd . $HOME --type directory -HI 2>/dev/null || find $HOME -type d 2>/dev/null; } | fzf)"
+        [ -n "$TARGET" ] && cd "$TARGET"
+}
+fzf-git-branch() {
+    git rev-parse HEAD > /dev/null 2>&1 || return
+
+    git branch --color=always --all --sort=-committerdate |
+        grep -v HEAD |
+        fzf --height 50% --ansi --no-multi --preview-window right:65% \
+            --preview 'git log -n 50 --color=always --date=short --pretty="format:%C(auto)%cd %h%d %s" $(sed "s/.* //" <<< {})' |
+        sed "s/.* //"
+}
+fzf-git-checkout() {
+    git rev-parse HEAD > /dev/null 2>&1 || return
+
+    local branch
+
+    branch=$(fzf-git-branch)
+    if [[ "$branch" = "" ]]; then
+        echo "No branch selected."
+        return
+    fi
+
+    # If branch name starts with 'remotes/' then it is a remote branch. By
+    # using --track and a remote branch name, it is the same as:
+    # git checkout -b branchName --track origin/branchName
+    if [[ "$branch" = 'remotes/'* ]]; then
+        git checkout --track $branch
+    else
+        git checkout $branch;
+    fi
+
+}
+alias gb="fzf-git-branch"
+alias gco="fzf-git-checkout"
+is_in_git_repo() {
+    # git rev-parse HEAD > /dev/null 2>&1
+    git rev-parse HEAD > /dev/null
+}
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=off
